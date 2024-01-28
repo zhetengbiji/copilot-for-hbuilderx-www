@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, nextTick } from 'vue'
 import { onDidReceiveMessage, postMessage, onReady } from './vscode'
 import * as marked from 'marked'
 import { throttle } from 'lodash-es'
@@ -12,6 +12,7 @@ type Line = {
 
 const textarea = ref('')
 const list = ref<Line[]>([])
+const listEl = ref<HTMLElement | null>(null)
 
 function send() {
   const text = textarea.value
@@ -34,8 +35,9 @@ function enter(event: KeyboardEvent) {
 
 const refresh = throttle((line: Line) => {
   line.html = marked.parse(line.text + (line.end ? '' : '...')) as string
-  const listEl = document.querySelector('.list')!
-  listEl.scrollTop = listEl.scrollHeight
+  nextTick(() => {
+    listEl.value!.scrollTop = listEl.value!.scrollHeight
+  })
 }, 100)
 
 function append(text: string, end: boolean = false) {
@@ -80,7 +82,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="list">
+  <div :ref="(el: any) => (listEl = el)" class="list">
     <div v-for="(item, index) in list" :key="index" v-html="item.html"></div>
   </div>
   <div class="input-box">
@@ -124,7 +126,8 @@ body {
 
 .list {
   flex: 1;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 10px;
 }
 
