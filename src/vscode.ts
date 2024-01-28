@@ -15,10 +15,10 @@ if (!window.acquireVsCodeApi) {
   window.acquireVsCodeApi = function () {
     return {
       postMessage: function (options) {
-        hbuilderx.postMessage(options)
+        hbuilderx && hbuilderx.postMessage(options)
       },
       onDidReceiveMessage: function (callback) {
-        hbuilderx.onDidReceiveMessage(callback)
+        hbuilderx && hbuilderx.onDidReceiveMessage(callback)
       }
     }
   }

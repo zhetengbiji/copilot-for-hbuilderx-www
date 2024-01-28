@@ -1,58 +1,73 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { onDidReceiveMessage, postMessage, onReady } from './vscode'
 import * as marked from 'marked'
+import { throttle } from 'lodash-es'
 
-type Line = HTMLElement & { __end?: boolean; __text?: string }
+type Line = {
+  end?: boolean
+  text: string
+  html: string
+}
+
+const textarea = ref('')
+const list = ref<Line[]>([])
+
+function send() {
+  const text = textarea.value
+  if (text) {
+    postMessage({
+      command: 'input',
+      text
+    })
+    textarea.value = ''
+  }
+}
+
+function enter(event: KeyboardEvent) {
+  if (!event.shiftKey && !event.isComposing) {
+    event.preventDefault()
+    const button = document.querySelector('button')!
+    button.click()
+  }
+}
+
+const refresh = throttle((line: Line) => {
+  line.html = marked.parse(line.text + (line.end ? '' : '...')) as string
+  const listEl = document.querySelector('.list')!
+  listEl.scrollTop = listEl.scrollHeight
+}, 100)
+
+function append(text: string, end: boolean = false) {
+  let line = list.value[list.value.length - 1]
+  if (!line || line.end) {
+    line = {
+      text: '',
+      html: ''
+    }
+    list.value.push(line)
+  }
+  line.end = end
+  line.text += text
+  if (end) {
+    refresh.flush()
+  }
+  refresh(line)
+  if (end) {
+    refresh.flush()
+  }
+}
 
 onMounted(() => {
-  const send = document.querySelector('button')!
-  const textarea = document.querySelector('textarea')!
-  const list = document.getElementById('list')!
-
-  send.addEventListener('click', () => {
-    const text = textarea.value
-    if (text) {
-      postMessage({
-        command: 'input',
-        text
-      })
-      textarea.value = ''
-    }
-  })
-  textarea.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
-      event.preventDefault()
-      send.click()
-    }
-  })
-
   onReady(() => {
     onDidReceiveMessage(function (message: { command: 'appendLine' | 'append'; text: string }) {
       switch (message.command) {
         case 'appendLine': {
-          let line = list.querySelector('div:last-child') as Line | null
-          if (!line || line.__end) {
-            line = document.createElement('div')
-            list.appendChild(line)
-          }
-          line.__end = true
-          const text = (line.__text = (line.__text || '') + message.text)
-          const html = marked.parse(text) as string
-          line.innerHTML = html
-          list.scrollTop = list.scrollHeight
+          append(message.text, true)
           break
         }
         case 'append': {
-          let line = list.querySelector('div:last-child') as Line | null
-          if (!line || line.__end) {
-            line = document.createElement('div')
-            list.appendChild(line)
-          }
-          const text = (line.__text = (line.__text || '') + message.text)
-          const html = marked.parse(text + '...') as string
-          line.innerHTML = html
-          list.scrollTop = list.scrollHeight
+          append(message.text)
           break
         }
       }
@@ -65,10 +80,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="list" class="list"></div>
+  <div class="list">
+    <div v-for="(item, index) in list" :key="index" v-html="item.html"></div>
+  </div>
   <div class="input-box">
-    <textarea type="text" placeholder="询问 Copilot" rows="1"></textarea>
-    <button>▷</button>
+    <textarea
+      type="text"
+      placeholder="询问 Copilot"
+      rows="1"
+      v-model="textarea"
+      @keydown.enter="enter"
+    ></textarea>
+    <button @click="send">▷</button>
   </div>
 </template>
 
