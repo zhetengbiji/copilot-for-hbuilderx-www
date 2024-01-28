@@ -104,17 +104,16 @@ body {
   height: 100%;
 }
 
-.body {
+html {
+  font-size: 13px;
+}
+
+body {
   flex: 1;
   /* user-select: none; */
   box-sizing: border-box;
   background-color: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
-}
-
-p {
-  font-size: 13px;
-  line-height: 1.5em;
 }
 
 .session {
