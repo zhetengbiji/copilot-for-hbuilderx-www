@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from 'vue'
+import { onMounted, ref, nextTick, reactive } from 'vue'
 import { onDidReceiveMessage, postMessage, onReady } from './vscode'
 import * as marked from 'marked'
 import { throttle } from 'lodash-es'
@@ -43,10 +43,10 @@ const refresh = throttle((line: Line) => {
 function append(text: string, end: boolean = false) {
   let line = list.value[list.value.length - 1]
   if (!line || line.end) {
-    line = {
+    line = reactive({
       text: '',
       html: ''
-    }
+    })
     list.value.push(line)
   }
   line.end = end
