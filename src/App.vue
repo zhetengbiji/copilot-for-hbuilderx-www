@@ -3,20 +3,21 @@ import { onMounted, ref, nextTick, reactive } from 'vue'
 import { onDidReceiveMessage, postMessage, onReady } from './vscode'
 import { Marked } from 'marked'
 import { throttle } from 'lodash-es'
-import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js/lib/common'
 // import 'highlight.js/styles/github.css'
 // import 'highlight.js/styles/github-dark.css'
 
-const marked = new Marked(
-  markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight(code, lang, info) {
+const marked = new Marked({
+  renderer: {
+    code(code, lang = '', escaped) {
       const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-      return hljs.highlight(code, { language }).value
+      const html = escaped ? code : hljs.highlight(code, { language }).value
+      return `<code-view>
+  <pre><code class="xxx hljs language-${lang}">${html}</code></pre>
+</code-view>`
     }
-  })
-)
+  }
+})
 
 type Line = {
   end?: boolean
@@ -100,7 +101,13 @@ onMounted(() => {
     <div v-for="(item, index) in list" :key="index" v-html="item.html"></div>
   </div>
   <div class="input-box">
-    <textarea type="text" placeholder="询问 Copilot" rows="1" v-model="textarea" @keydown.enter="enter"></textarea>
+    <textarea
+      type="text"
+      placeholder="询问 Copilot"
+      rows="1"
+      v-model="textarea"
+      @keydown.enter="enter"
+    ></textarea>
     <button @click="send">▷</button>
   </div>
 </template>
