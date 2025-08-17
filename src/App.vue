@@ -133,6 +133,19 @@ body {
   color: var(--vscode-foreground);
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.2);
+}
+
 .session {
   display: flex;
   flex-direction: column;
