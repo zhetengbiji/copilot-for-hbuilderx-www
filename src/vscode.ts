@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-var notHbuilderx = false
+let notHbuilderx = false
 
 if (!window.acquireVsCodeApi) {
   window.acquireVsCodeApi = function () {

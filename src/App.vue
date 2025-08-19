@@ -116,13 +116,7 @@ onMounted(() => {
     <div v-for="(item, index) in list" :key="index" v-html="item.html"></div>
   </div>
   <div class="input-box">
-    <textarea
-      type="text"
-      placeholder="询问 Copilot"
-      rows="1"
-      v-model="textarea"
-      @keydown.enter="enter"
-    ></textarea>
+    <textarea type="text" placeholder="询问 Copilot" rows="1" v-model="textarea" @keydown.enter="enter"></textarea>
     <button v-if="!loading" @click="send">▷</button>
     <button v-if="loading" @click="stop">■</button>
   </div>
@@ -155,11 +149,11 @@ body {
 }
 
 ::-webkit-scrollbar {
-    background: transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .session {
