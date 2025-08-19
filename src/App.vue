@@ -28,6 +28,7 @@ type Line = {
 const textarea = ref('')
 const list = ref<Line[]>([])
 const listEl = ref<HTMLElement | null>(null)
+const loading = ref(false)
 
 function send() {
   const text = textarea.value
@@ -38,6 +39,12 @@ function send() {
     })
     textarea.value = ''
   }
+}
+
+function stop() {
+  postMessage({
+    command: 'stop'
+  })
 }
 
 function enter(event: KeyboardEvent) {
@@ -77,14 +84,22 @@ function append(text: string, end: boolean = false) {
 
 onMounted(() => {
   onReady(() => {
-    onDidReceiveMessage(function (message: { command: 'appendLine' | 'append'; text: string }) {
+    onDidReceiveMessage(function (message: {
+      command: 'appendLine' | 'append' | 'updateLoading'
+      text?: string
+      loading?: boolean
+    }) {
       switch (message.command) {
         case 'appendLine': {
-          append(message.text, true)
+          append(message.text!, true)
           break
         }
         case 'append': {
-          append(message.text)
+          append(message.text!)
+          break
+        }
+        case 'updateLoading': {
+          loading.value = message.loading!
           break
         }
       }
@@ -108,7 +123,8 @@ onMounted(() => {
       v-model="textarea"
       @keydown.enter="enter"
     ></textarea>
-    <button @click="send">▷</button>
+    <button v-if="!loading" @click="send">▷</button>
+    <button v-if="loading" @click="stop">■</button>
   </div>
 </template>
 
@@ -203,6 +219,16 @@ button {
   top: 50%;
   margin-top: -11px;
   color: var(--vscode-input-foreground);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  outline: 1px solid var(--vscode-input-border);
+}
+
+button:focus {
+  outline: none;
 }
 
 .hljs {
