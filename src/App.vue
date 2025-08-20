@@ -56,8 +56,8 @@ function add() {
 function enter(event: KeyboardEvent) {
   if (!event.shiftKey && !event.isComposing) {
     event.preventDefault()
-    const button = document.querySelector('button')!
-    button.click()
+    const button = document.querySelector('[data-command="send"]') as HTMLButtonElement | null
+    button?.click()
   }
 }
 
@@ -136,7 +136,7 @@ onMounted(() => {
       v-model="textarea"
       @keydown.enter="enter"
     ></textarea>
-    <button v-if="!loading" @click="send">▷</button>
+    <button data-command="send" v-if="!loading" @click="send">▷</button>
     <button v-if="loading" @click="stop">■</button>
   </div>
 </template>
