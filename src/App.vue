@@ -47,6 +47,12 @@ function stop() {
   })
 }
 
+function add() {
+  postMessage({
+    command: 'add'
+  })
+}
+
 function enter(event: KeyboardEvent) {
   if (!event.shiftKey && !event.isComposing) {
     event.preventDefault()
@@ -85,7 +91,7 @@ function append(text: string, end: boolean = false) {
 onMounted(() => {
   onReady(() => {
     onDidReceiveMessage(function (message: {
-      command: 'appendLine' | 'append' | 'updateLoading'
+      command: 'appendLine' | 'append' | 'updateLoading' | 'clear'
       text?: string
       loading?: boolean
     }) {
@@ -96,6 +102,10 @@ onMounted(() => {
         }
         case 'append': {
           append(message.text!)
+          break
+        }
+        case 'clear': {
+          list.value = []
           break
         }
         case 'updateLoading': {
@@ -112,11 +122,20 @@ onMounted(() => {
 </script>
 
 <template>
+  <div class="nav">
+    <button @click="add">+</button>
+  </div>
   <div :ref="(el: any) => (listEl = el)" class="list">
     <div v-for="(item, index) in list" :key="index" v-html="item.html"></div>
   </div>
   <div class="input-box">
-    <textarea type="text" placeholder="询问 Copilot" rows="1" v-model="textarea" @keydown.enter="enter"></textarea>
+    <textarea
+      type="text"
+      placeholder="询问 Copilot"
+      rows="1"
+      v-model="textarea"
+      @keydown.enter="enter"
+    ></textarea>
     <button v-if="!loading" @click="send">▷</button>
     <button v-if="loading" @click="stop">■</button>
   </div>
@@ -175,6 +194,13 @@ body {
   position: relative;
 }
 
+.nav {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1px 5px 5px 5px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+
 textarea {
   font-size: 13px;
   padding: 8px 6px;
@@ -208,10 +234,6 @@ button {
   font-size: 16px;
   height: 22px;
   text-align: center;
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  margin-top: -11px;
   color: var(--vscode-input-foreground);
   border-radius: 3px;
   cursor: pointer;
@@ -223,6 +245,13 @@ button:hover {
 
 button:focus {
   outline: none;
+}
+
+.input-box button {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  margin-top: -11px;
 }
 
 .hljs {
